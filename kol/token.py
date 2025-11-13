@@ -104,7 +104,7 @@ class TokenKind(Enum):
     # POLITE REMAIN TOKEN
     BREK_POLITE = auto() # 나갑
     FINISH_POLITE = auto() # 끝납
-    HAVE_POLITE = auto() # 가진
+    HAVE_POLITE = auto() # 가집
     NOTEQUAL_POLITE = auto() # 다릅
     GREATER_POLITE = auto() # 큽
     BECOME_POLITE = auto() # 됩
@@ -209,7 +209,7 @@ class Token:
         "된": TokenKind.BECOME,
         "나갑": TokenKind.BREK_POLITE,
         "끝납": TokenKind.FINISH_POLITE,
-        "가진": TokenKind.HAVE_POLITE,
+        "가집": TokenKind.HAVE_POLITE,
         "다릅": TokenKind.NOTEQUAL_POLITE,
         "큽": TokenKind.GREATER_POLITE,
         "됩": TokenKind.BECOME_POLITE
