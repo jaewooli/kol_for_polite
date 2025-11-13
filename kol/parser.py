@@ -39,11 +39,14 @@ class Parser:
                     return self.parse_while()
             case TokenKind.BREK:
                 if not self.is_loop:
-                    raise Exception("문법 에러: 반복문에서만 나간다.를 쓸 수 있음")
+                    raise Exception("문법 에러: 반복문에서만 나간다./나갑니다.를 쓸 수 있음")
                 self.next()
 
-                self.expect(TokenKind.DA, "문법 에러: 나간다. 가 필요함")
-                self.expect(TokenKind.DOT, "문법 에러: 나간다. 가 필요함")
+                try:
+                    self.expect(TokenKind.DA, "문법 에러: 나간다./나갑니다. 가 필요함")
+                except:
+                    self.expec(TokenKind.IMNIDA, "문법 에러: 나간다./나갑니다. 가 필요함")
+                self.expect(TokenKind.DOT, "문법 에러: 나간다./나갑니다. 가 필요함")
                 return BreakAST()
             case TokenKind.IF:
                 return self.parse_if()
@@ -56,19 +59,31 @@ class Parser:
                     self.expect(TokenKind.EUN, "문법 에러: 은 조사가 필요함")
                     ret = self.parse_expr()
                     self.expect(TokenKind.KA, "문법 에러: 이/가 조사가 필요함")
-                    self.expect_seq(TokenKind.BECOME, TokenKind.DA, 
-                                    TokenKind.DOT ,msg="문법 에러: 된다.가 필요함")
+                    try:
+                        self.expect_seq(TokenKind.BECOME, TokenKind.DA, 
+                                    TokenKind.DOT ,msg="문법 에러: 된다./됩니다.가 필요함")
+                    except:
+                        self.expect_seq(TokenKind.BECOME_POLITE, TokenKind.NIDA, 
+                                    TokenKind.DOT ,msg="문법 에러: 된다./됩니다.가 필요함")
                     self.expect(TokenKind.AND, "문법 에러: 그리고가 필요함")
-                self.expect_seq(TokenKind.FINISH, TokenKind.DA,
-                    TokenKind.DOT, msg="문법 에러: 끝난다.가 필요함")
+                try:
+                    self.expect_seq(TokenKind.FINISH, TokenKind.DA,
+                    TokenKind.DOT, msg="문법 에러: 끝난다./끝납니다.가 필요함")
+                except:
+                    self.expect_seq(TokenKind.FINISH_POLITE, TokenKind.NIDA,
+                    TokenKind.DOT, msg="문법 에러: 끝난다./끝납니다.가 필요함")
                 return ReturnAST(ret)
             case _:
                 expr: ExprAST = self.parse_expr()
                 if self.check(TokenKind.EUN):
                     rvalue: ExprAST = self.parse_expr()
                     self.expect(TokenKind.KA, "문법 에러: 이/가가 필요함")
-                    self.expect_seq(TokenKind.BECOME, TokenKind.DA, TokenKind.DOT, 
-                                    msg="문법 에러: 된다.로 끝나야함")
+                    try:
+                        self.expect_seq(TokenKind.BECOME, TokenKind.DA, TokenKind.DOT, 
+                                    msg="문법 에러: 된다./됩니다.로 끝나야함")
+                    except:
+                        self.expect_seq(TokenKind.BECOME_POLITE,TokenKind.NIDA,TokenKind.DOT,
+                                        msg="문법 에러: 된다./됩니다.로 끝나야함")
                     return AssignAST(expr, rvalue)
                 elif self.current() == TokenKind.E:
                     return self.parse_for(expr)
@@ -88,9 +103,14 @@ class Parser:
         var:list[str] = []
         while self.current() == TokenKind.VAR:
             var.append(self.parse_field())
-        self.expect_seq(TokenKind.VALUE, TokenKind.EUL, TokenKind.HAVE,
+        try:
+            self.expect_seq(TokenKind.VALUE, TokenKind.EUL, TokenKind.HAVE,
                         TokenKind.DA, TokenKind.DOT, 
-                        msg="문법 에러: 값을 가진다.로 끝나야함")
+                        msg="문법 에러: 값을 가진다./값을 가집니다.로 끝나야함")
+        except:
+            self.expect_seq(TokenKind.VALUE,TokenKind.EUL,TokenKind.HAVE_POLITE,
+                        TokenKind.NIDA, TokenKind.DOT, 
+                        msg="문법 에러: 값을 가진다./값을 가집니다.로 끝나야함")
 
         return StructAST(ident, var)
 
@@ -126,10 +146,14 @@ class Parser:
                 elif func.ident == "초기화":
                     raise Exception("문법 에러: 초기화 함수는 한 번만 정의 가능함")
                 funcs.append(func)
-
-        self.expect_seq(TokenKind.VALUE, TokenKind.EUL, TokenKind.HAVE,
+        try:
+            self.expect_seq(TokenKind.VALUE, TokenKind.EUL, TokenKind.HAVE,
                         TokenKind.DA, TokenKind.DOT, 
-                        msg="문법 에러: 값을 가진다.로 끝나야함")
+                        msg="문법 에러: 값을 가진다./가집니다.로 끝나야함")
+        except:
+            self.expect_seq(TokenKind.VALUE, TokenKind.EUL, TokenKind.HAVE_POLITE,
+                            TokenKind.NIDA, TokenKind.DOT,
+                            msg="문법 에러: 값을 가진다.가집니다.로 끝나야함")
         return ClassAST(ident, var_names, funcs, parent, new_func)
 
     def parse_func(self) -> FuncAST:
@@ -137,8 +161,10 @@ class Parser:
             raise Exception("문법 에러: 함수는 이름이 필요함")
         ident: str = self.current_value()
         self.next()
+        
         if not self.check(TokenKind.HANDA) or not self.check(TokenKind.HAMNIDA):
-            self.check(TokenKind.DA)
+            if not self.check(TokenKind.DA):  
+                self.check(TokenKind.IMNIDA) 
             
         self.expect(TokenKind.EUN, "문법 에러: 은/는 조사가 필요함")
         params: list[str] = []
@@ -296,23 +322,23 @@ class Parser:
             if self.check(TokenKind.RANG):
                 op_kind: BinAST.OpKind
                 if self.check(TokenKind.KAT):
-                    if self.current() == TokenKind.DA and \
+                    if (self.current() == TokenKind.DA or self.current() == TokenKind.IMNIDA)and \
                         self.peek() == TokenKind.EUN:
                         self.next()
                         self.next()
                         self.expect(TokenKind.GEOT, "문법 에러: 것이 필요함")
-                    elif self.current() == TokenKind.DA:
+                    elif self.current() == TokenKind.DA or self.current() == TokenKind.IMNIDA:
                         self.next()
                     else:
                         raise Exception("문법 에러: 같다/같다는 것이 필요함")
                     op_kind = BinAST.OpKind.OP_EQUAL
                 elif self.check(TokenKind.NOTEQUAL):
-                    if self.current() == TokenKind.DA and \
+                    if (self.current() == TokenKind.DA or self.current() == TokenKind.IMNIDA)and \
                         self.peek() == TokenKind.EUN:
                         self.next()
                         self.next()
                         self.expect(TokenKind.GEOT, "문법 에러: 것이 필요함")
-                    elif self.current() == TokenKind.DA:
+                    elif self.current() == TokenKind.DA or self.current() == TokenKind.IMNIDA:
                         self.next()
                     else:
                         raise Exception("문법 에러: 다르다/다르다는 것이 필요함")
@@ -359,7 +385,7 @@ class Parser:
                 else:
                     raise Exception("문법 에러: 잘못된 단어가 있음")
                 
-                if self.current() == TokenKind.DA and \
+                if (self.current() == TokenKind.DA or self.current() == TokenKind.IMNIDA) and \
                     self.peek() == TokenKind.EUN:
                     self.next()
                     self.next()
@@ -377,7 +403,7 @@ class Parser:
                     op_kind = BinAST.OpKind.OP_SHR
                 self.expect(TokenKind.RO, "으로가 필요함")
                 self.expect(TokenKind.GAN, "간이 필요함")
-                if not self.check(TokenKind.GEOT) and not self.check(TokenKind.DA):
+                if not self.check(TokenKind.GEOT) and (not self.check(TokenKind.DA) or not self.check(TokenKind.IMNIDA)):
                     raise Exception("문법 에러: 다/것 이 필요함")
                 left = BinAST(op_kind, left, right)
 
@@ -420,7 +446,7 @@ class Parser:
                         left = self.parse_caller(left)
                 case TokenKind.WA|TokenKind.RO:
                     left = self.parse_caller(left)
-                case TokenKind.HANDA|TokenKind.DA|TokenKind.HAMNIDA:
+                case TokenKind.HANDA|TokenKind.DA|TokenKind.HAMNIDA|TokenKind.IMNIDA:
                     left = self.try_call_stmt(left)
                 case TokenKind.GEOT|TokenKind.HAN:
                     left = self.try_call_expr(left)
@@ -587,6 +613,7 @@ class Parser:
             kind == TokenKind.HANDA or \
             kind == TokenKind.HAMNIDA or \
             kind == TokenKind.DA or \
+            kind == TokenKind.IMNIDA or \
             kind == TokenKind.GEOT or \
             kind == TokenKind.HAN
 
@@ -614,6 +641,6 @@ class Parser:
     
     def try_call_stmt(self, callee: ExprAST, 
                       params: list[ExprAST] = []) -> CallStmtAST|None:
-        if self.check(TokenKind.HANDA) or self.check(TokenKind.DA) or self.check(TokenKind.HAMNIDA):
+        if self.check(TokenKind.HANDA) or self.check(TokenKind.DA) or self.check(TokenKind.HAMNIDA) or self.check(TokenKind.IMNIDA):
             return CallStmtAST(callee, params)
         return None

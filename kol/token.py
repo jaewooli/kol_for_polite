@@ -103,10 +103,11 @@ class TokenKind(Enum):
     
     # POLITE REMAIN TOKEN
     BREK_POLITE = auto() # 나갑
-    FINISH_POLITE = auto() # 끝냅
+    FINISH_POLITE = auto() # 끝납
     HAVE_POLITE = auto() # 가진
     NOTEQUAL_POLITE = auto() # 다릅
     GREATER_POLITE = auto() # 큽
+    BECOME_POLITE = auto() # 됩
     
     # etc
     COMMENT = auto() # 주석 ㅁㄴㅇㄹ/ 주석 시작 ~ 끝
@@ -207,10 +208,11 @@ class Token:
         "호출": TokenKind.CALL,
         "된": TokenKind.BECOME,
         "나갑": TokenKind.BREK_POLITE,
-        "끝냅": TokenKind.FINISH_POLITE,
+        "끝납": TokenKind.FINISH_POLITE,
         "가진": TokenKind.HAVE_POLITE,
         "다릅": TokenKind.NOTEQUAL_POLITE,
-        "큽": TokenKind.GREATER_POLITE
+        "큽": TokenKind.GREATER_POLITE,
+        "됩": TokenKind.BECOME_POLITE
     }
 
     def __init__(self, kind: TokenKind = TokenKind.UNDEFINED, str: str = ""):
