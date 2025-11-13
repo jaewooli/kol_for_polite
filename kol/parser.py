@@ -28,9 +28,9 @@ class Parser:
             case TokenKind.FUNC:
                 return self.parse_func()
             case TokenKind.CONT:
-                if self.peek() == TokenKind.HANDA:
+                if self.peek() == TokenKind.HANDA or self.peek() == TokenKind.HAMNIDA:
                     if not self.is_loop:
-                        raise Exception("문법 에러: 반복문에서만 계속한다.를 쓸 수 있음")
+                        raise Exception("문법 에러: 반복문에서만 계속한다./계속합니다.를 쓸 수 있음")
                     self.next()
                     self.next()
                     self.expect(TokenKind.DOT, "문법 에러: 문장이 끝나면 마침표를 붙여야함")
@@ -137,7 +137,7 @@ class Parser:
             raise Exception("문법 에러: 함수는 이름이 필요함")
         ident: str = self.current_value()
         self.next()
-        if not self.check(TokenKind.HANDA):
+        if not self.check(TokenKind.HANDA) or not self.check(TokenKind.HAMNIDA):
             self.check(TokenKind.DA)
             
         self.expect(TokenKind.EUN, "문법 에러: 은/는 조사가 필요함")
@@ -158,9 +158,15 @@ class Parser:
         
         self.expect(TokenKind.NEXT, "문법 에러: 다음이 필요함")
         body: BodyAST = self.parse_body(TokenKind.PARAGRAPH)
-        self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
-                        TokenKind.EXECUTE, TokenKind.HANDA,
-                        TokenKind.DOT, msg="문법 에러: 문단을 실행한다.가 필요함")
+        try:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                            TokenKind.EXECUTE, TokenKind.HANDA,
+                            TokenKind.DOT, msg="문법 에러: 문단을 실행한다.가 필요함")
+        except:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                            TokenKind.EXECUTE, TokenKind.HAMNIDA,
+                            TokenKind.DOT, msg="문법 에러: 문단을 실행한다./실행합니다.가 필요함")
+
 
         return FuncAST(ident, params, body)
 
@@ -191,9 +197,14 @@ class Parser:
         tmp_loop = self.is_loop
         self.is_loop = True
         body = self.parse_body(TokenKind.PARAGRAPH)
-        self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
-                        TokenKind.LOOP, TokenKind.HANDA,
-                        TokenKind.DOT, msg="문법 에러: 문단을 반복한다.가 필요함")
+        try:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                            TokenKind.LOOP, TokenKind.HANDA,
+                            TokenKind.DOT, msg="문법 에러: 문단을 반복하다.가 필요함")
+        except:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                            TokenKind.LOOP, TokenKind.HAMNIDA,
+                            TokenKind.DOT, msg="문법 에러: 문단을 반복하다./반복합니다.가 필요함")
         self.is_loop = tmp_loop
         return ForAST(iter, item, body)
         
@@ -208,9 +219,14 @@ class Parser:
         tmp_loop = self.is_loop
         self.is_loop = True
         body = self.parse_body(TokenKind.PARAGRAPH)
-        self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+        try:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
                         TokenKind.LOOP, TokenKind.HANDA,
                         TokenKind.DOT, msg="문법 에러: 문단을 반복한다.가 필요함")
+        except:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                        TokenKind.LOOP, TokenKind.HAMNIDA,
+                        TokenKind.DOT, msg="문법 에러: 문단을 반복한다./반복합니다.가 필요함")
         self.is_loop = tmp_loop
         return WhileAST(expr, body)
 
@@ -220,19 +236,30 @@ class Parser:
         self.expect(TokenKind.THEN, "문법 에러: 이면/면/라면/이라면이 필요함")
         self.expect(TokenKind.NEXT, "문법 에러: 다음이 필요함")
         then_body = self.parse_body(TokenKind.PARAGRAPH)
-        
-        self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
-                        TokenKind.EXECUTE, TokenKind.HANDA,
-                        TokenKind.DOT, msg="문법 에러: 문단을 실행한다.가 필요함")
-        
+
+        try:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                            TokenKind.EXECUTE, TokenKind.HANDA,
+                            TokenKind.DOT, msg="문법 에러: 문단을 실행한다.가 필요함")
+        except:
+            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                        TokenKind.EXECUTE, TokenKind.HAMNIDA,
+                        TokenKind.DOT, msg="문법 에러: 문단을 실행한다./실행합니다.가 필요함")
+            
         if self.check(TokenKind.ELIF):
             else_cond = self.parse_if()
         elif self.check(TokenKind.ELSE):
             self.expect(TokenKind.NEXT, "문법 에러: 다음이 필요함")
             else_body = self.parse_body(TokenKind.PARAGRAPH)
-            self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+            
+            try:
+                self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
                             TokenKind.EXECUTE, TokenKind.HANDA,
                             TokenKind.DOT, msg="문법 에러: 문단을 실행한다.가 필요함")
+            except:   
+                self.expect_seq(TokenKind.PARAGRAPH, TokenKind.EUL,
+                        TokenKind.EXECUTE, TokenKind.HAMNIDA,
+                        TokenKind.DOT, msg="문법 에러: 문단을 실행한다./실행합니다.가 필요함")
             
             else_cond = CondAST(BoolAST(True), else_body, None)
         else:
@@ -296,7 +323,7 @@ class Parser:
                         self.peek() == TokenKind.GEOT:
                         self.next()
                         self.next()
-                    elif self.current(TokenKind.HANDA):
+                    elif self.current(TokenKind.HANDA)  or self.current(TokenKind.HAMNIDA):
                         self.next()
                     else:
                         raise Exception("문법 에러: 비슷하다/비슷한 것이 필요함")
@@ -307,7 +334,7 @@ class Parser:
                         self.peek() == TokenKind.GEOT:
                         self.next()
                         self.next()
-                    elif self.current(TokenKind.HANDA):
+                    elif self.current(TokenKind.HANDA) or self.current(TokenKind.HAMNIDA):
                         self.next()
                     else:
                         raise Exception("문법 에러: 비슷하다/비슷한 것이 필요함")
@@ -393,7 +420,7 @@ class Parser:
                         left = self.parse_caller(left)
                 case TokenKind.WA|TokenKind.RO:
                     left = self.parse_caller(left)
-                case TokenKind.HANDA|TokenKind.DA:
+                case TokenKind.HANDA|TokenKind.DA|TokenKind.HAMNIDA:
                     left = self.try_call_stmt(left)
                 case TokenKind.GEOT|TokenKind.HAN:
                     left = self.try_call_expr(left)
@@ -558,6 +585,7 @@ class Parser:
             kind == TokenKind.WA or \
             kind == TokenKind.RO or \
             kind == TokenKind.HANDA or \
+            kind == TokenKind.HAMNIDA or \
             kind == TokenKind.DA or \
             kind == TokenKind.GEOT or \
             kind == TokenKind.HAN
@@ -567,7 +595,7 @@ class Parser:
         if self.current() == TokenKind.EUL and self.peek() == TokenKind.CALL:
             self.next()
             self.next()
-            if self.check(TokenKind.HANDA):
+            if self.check(TokenKind.HANDA) or self.check(TokenKind.HAMNIDA):
                 return CallStmtAST(callee, params)
             elif self.check(TokenKind.HAN):
                 self.expect(TokenKind.GEOT, "문법 에러: 것이 필요함")
@@ -586,6 +614,6 @@ class Parser:
     
     def try_call_stmt(self, callee: ExprAST, 
                       params: list[ExprAST] = []) -> CallStmtAST|None:
-        if self.check(TokenKind.HANDA) or self.check(TokenKind.DA):
+        if self.check(TokenKind.HANDA) or self.check(TokenKind.DA) or self.check(TokenKind.HAMNIDA):
             return CallStmtAST(callee, params)
         return None
