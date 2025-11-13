@@ -37,7 +37,7 @@ class Parser:
                     return ContinueAST()
                 else:
                     return self.parse_while()
-            case TokenKind.BREK:
+            case TokenKind.BREK|TokenKind.BREK_POLITE:
                 if not self.is_loop:
                     raise Exception("문법 에러: 반복문에서만 나간다./나갑니다.를 쓸 수 있음")
                 self.next()
@@ -203,8 +203,12 @@ class Parser:
         name: str = self.current_value()
         self.next()
         self.expect(TokenKind.KA, "문법 에러: 이/가 조사가 필요함")
-        self.expect_seq(TokenKind.EXIST, TokenKind.DOT, 
-                msg="문법 에러: \"있다.\"가 필요함")
+        try:
+            self.expect_seq(TokenKind.EXIST, TokenKind.DOT, 
+                msg="문법 에러: \"있다./있습니다.\"가 필요함")
+        except:
+            self.expect_seq(TokenKind.EXIST_POLITE, TokenKind.NIDA, 
+                msg="문법 에러: \"있다./있습니다.\"가 필요함")
         return name
 
     def parse_for(self, iter: ExprAST) -> ForAST:
@@ -316,7 +320,7 @@ class Parser:
     def parse_equal(self) -> ExprAST:
         left: ExprAST = self.parse_access()
         while self.current() == TokenKind.KA and \
-                self.peek() != TokenKind.BECOME:
+                (self.peek() != TokenKind.BECOME or self.peek() != TokenKind.BECOME_POLITE):
             self.next()
             right: ExprAST = self.parse_access()
             if self.check(TokenKind.RANG):
@@ -332,7 +336,7 @@ class Parser:
                     else:
                         raise Exception("문법 에러: 같다/같다는 것이 필요함")
                     op_kind = BinAST.OpKind.OP_EQUAL
-                elif self.check(TokenKind.NOTEQUAL):
+                elif self.check(TokenKind.NOTEQUAL) or self.check(TokenKind.NOTEQUAL_POLITE):
                     if (self.current() == TokenKind.DA or self.current() == TokenKind.IMNIDA)and \
                         self.peek() == TokenKind.EUN:
                         self.next()
@@ -370,7 +374,7 @@ class Parser:
                 left = BinAST(op_kind, left, right)
             elif self.check(TokenKind.BODA):
                 op_kind: BinAST.OpKind
-                if self.check(TokenKind.GREATER):
+                if self.check(TokenKind.GREATER) or self.check(TokenKind.GREATER_POLITE):
                     if self.check(TokenKind.GEONA):
                         self.expect(TokenKind.KAT, "문법 에러: 같다 가 필요함")
                         op_kind = BinAST.OpKind.OP_GE
