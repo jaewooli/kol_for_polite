@@ -74,6 +74,11 @@ class TokenKind(Enum):
     RIGHT = auto() # 오른쪽
     GEOT = auto() # 것
     ELEM = auto() # 원소
+    
+    # POLITE MIDDLE TOKEN
+    IMNIDA = auto() # 입니다
+    HAMNIDA = auto() # 합니다
+    EXIST_POLITE = auto() # 있습니다.
 
     # REMAIN TOKEN
     LOOP = auto() # 반복
@@ -167,6 +172,9 @@ class Token:
         "오른쪽": TokenKind.RIGHT,
         "것": TokenKind.GEOT,
         "원소": TokenKind.ELEM,
+        "입니다": TokenKind.IMNIDA,
+        "합니다": TokenKind.HAMNIDA,
+        "있습니다": TokenKind.EXIST_POLITE
     }
 
     MIDDLE_SORT_KEY = tuple(sorted(MIDDLE, key=len, reverse=True))
