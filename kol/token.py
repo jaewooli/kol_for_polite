@@ -77,6 +77,7 @@ class TokenKind(Enum):
     
     # POLITE MIDDLE TOKEN
     IMNIDA = auto() # 입니다
+    NIDA = auto() # 니다
     HAMNIDA = auto() # 합니다
     EXIST_POLITE = auto() # 있습니다.
 
@@ -99,7 +100,14 @@ class TokenKind(Enum):
     CALL = auto() # 호출
     BECOME = auto() # 된
     IDENTIFIER = auto() # 가, 나, 다
-
+    
+    # POLITE REMAIN TOKEN
+    BREK_POLITE = auto() # 나갑
+    FINISH_POLITE = auto() # 끝냅
+    HAVE_POLITE = auto() # 가진
+    NOTEQUAL_POLITE = auto() # 다릅
+    GREATER_POLITE = auto() # 큽
+    
     # etc
     COMMENT = auto() # 주석 ㅁㄴㅇㄹ/ 주석 시작 ~ 끝
     ENDOFFILE = auto() # 파일 끝
@@ -174,7 +182,8 @@ class Token:
         "원소": TokenKind.ELEM,
         "입니다": TokenKind.IMNIDA,
         "합니다": TokenKind.HAMNIDA,
-        "있습니다": TokenKind.EXIST_POLITE
+        "있습니다": TokenKind.EXIST_POLITE,
+        "니다": TokenKind.NIDA
     }
 
     MIDDLE_SORT_KEY = tuple(sorted(MIDDLE, key=len, reverse=True))
@@ -196,7 +205,12 @@ class Token:
         "크": TokenKind.GREATER,
         "작": TokenKind.LESS,
         "호출": TokenKind.CALL,
-        "된": TokenKind.BECOME
+        "된": TokenKind.BECOME,
+        "나갑": TokenKind.BREK_POLITE,
+        "끝냅": TokenKind.FINISH_POLITE,
+        "가진": TokenKind.HAVE_POLITE,
+        "다릅": TokenKind.NOTEQUAL_POLITE,
+        "큽": TokenKind.GREATER_POLITE
     }
 
     def __init__(self, kind: TokenKind = TokenKind.UNDEFINED, str: str = ""):
